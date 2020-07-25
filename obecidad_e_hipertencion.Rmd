@@ -1,0 +1,368 @@
+---
+title: "Obesidad"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(sf)
+library(tmap)
+```
+# Data loads
+
+## Datos de obesidad, hipertensión, diabetes.
+
+```{r}
+library(readxl)
+a_peq_prev_2018 <- read_excel("data_raw/a_peq_prev_2018.xlsx", skip = 2) 
+```
+
+## Valores de todos los municipios
+
+```{r}
+data_municipios_pais <- a_peq_prev_2018 %>% 
+  filter(Estimador == "Valor", `Clave de entidad federativa` != "00") %>% 
+  select(`Identificador único del municipio`, 
+         `Porcentaje de población de 20 años y más con obesidad.`: `Porcentaje de población de 20 años y más con diagnóstico previo de diabetes.`)
+
+data_municipios_pais
+```
+
+# Shapes
+
+## Municipios de la república
+
+```{r}
+shp_municipios_pais <- read_sf("shapes/municipios_mexico.gpkg") 
+shp_municipios_pais
+
+```
+## Entidades de la republica
+
+```{r}
+Entidades_shp <- shp_municipios_pais %>% 
+  group_by(ENTIDAD) %>% 
+  summarize() %>% 
+  mutate(id = paste0(ENTIDAD,"000"))
+
+Entidades_shp 
+```
+# Uniones
+
+## Union de datos con shape a nivel Estatal
+
+```{r}
+Entidades <- Entidades_shp %>% 
+  left_join(data_municipios_pais, by = c("id" = "Identificador único del municipio"))
+Entidades
+```
+
+
+## Unimos los datos al shape a nivel municipal
+
+```{r}
+municipios_pais <- shp_municipios_pais %>% 
+  left_join(data_municipios_pais, by = c("CVEGEO" = "Identificador único del municipio"))
+municipios_pais
+```
+
+# Mapas
+
+## ESTATAL
+
+### OBESIDAD
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con obesidad."
+titulo <- "OBESIDAD POR ESTADO"
+
+m <- tm_shape(Entidades, projection = 4326) +
+  tm_polygons(variable,
+              breaks = c(25,30, 35,40,45,50),
+              palette = "BuPu",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 30),
+              textNA = "ND"
+    ) +
+  tm_legend(legend.title.size = .7,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.7, "top"),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+    title.position = c("left", .15),
+    title.fontfamily = "mono") +
+  tm_scale_bar(position = c("left", "bottom")) 
+
+
+tmap_save(m, "img_output/estatal_obesidad.png", width=1920, height=1080, asp=0)
+```
+
+### HIPERTENSIÓN
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de hipertensión."
+titulo <- "HIPERTENSIÓN POR ESTADO"
+
+m <- tm_shape(Entidades, projection = 4326) +
+  tm_polygons(variable,
+              breaks = c(10, 14, 18, 22, 26, 30),
+              palette = "BrBG",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 30),
+              textNA = "ND"
+    ) +
+  tm_legend(legend.title.size = .7,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.7, "top"),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+    title.position = c("left", .15),
+    title.fontfamily = "mono") +
+  tm_scale_bar(position = c("left", "bottom")) 
+
+
+tmap_save(m, "img_output/estatal_hipertension.png", width=1920, height=1080, asp=0)
+```
+
+### DIABETES
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de diabetes."
+titulo <- "DIABETES POR ESTADO"
+
+m <- tm_shape(Entidades, projection = 4326) +
+  tm_polygons(variable,
+              breaks = c(6,8,10,12,14,16),
+              palette = "PuOr",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 30),
+              textNA = "ND"
+    ) +
+  tm_legend(legend.title.size = .7,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.7, "top"),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+    title.position = c("left", .15),
+    title.fontfamily = "mono") +
+  tm_scale_bar(position = c("left", "bottom")) 
+
+
+tmap_save(m, "img_output/estatal_diabetes.png", width=1920, height=1080, asp=0)
+```
+
+## Municipal Nacional
+
+### OBESIDAD
+
+```{r}
+
+variable <- "Porcentaje de población de 20 años y más con obesidad."
+titulo <- "OBESIDAD POR MUNICIPIO"
+
+m <- tm_shape(municipios_pais, projection = 4326) +
+  tm_polygons(variable,
+              #breaks = c(25,30, 35,40,45,50),
+              palette = "BuPu",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 30),
+              textNA = "ND"
+    ) +
+  tm_shape(Entidades) +
+  tm_borders(col = "white", lwd = .7) +
+  tm_legend(legend.title.size = .7,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.7, "top"),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+    title.position = c("left", .15),
+    title.fontfamily = "mono") +
+  tm_scale_bar(position = c("left", "bottom")) 
+
+
+tmap_save(m, "img_output/nacional_municipio_obesidad.png", width=1920, height=1080, asp=0)
+
+```
+
+### HIPERTENSIÓN
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de hipertensión."
+titulo <- "HIPERTENSIÓN POR MUNICIPIO"
+
+m <- tm_shape(municipios_pais, projection = 4326) +
+  tm_polygons(variable,
+              #breaks = c(25,30, 35,40,45,50),
+              palette = "BrBG",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 30),
+              textNA = "ND"
+    ) +
+  tm_shape(Entidades) +
+  tm_borders(col = "white", lwd = .7) +
+  tm_legend(legend.title.size = .7,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.7, "top"),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+    title.position = c("left", .15),
+    title.fontfamily = "mono") +
+  tm_scale_bar(position = c("left", "bottom")) 
+
+
+tmap_save(m, "img_output/nacional_municipio_hipertension.png", width=1920, height=1080, asp=0)
+```
+
+### DIABETES
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de diabetes."
+titulo <- "DIABETES POR MUNICIPIO"
+
+m <- tm_shape(municipios_pais, projection = 4326) +
+  tm_polygons(variable,
+              breaks = c(0, 7, 14, 21, 28, 35),
+              palette = "PuOr",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 30),
+              textNA = "ND"
+    ) +
+  tm_shape(Entidades) +
+  tm_borders(col = "white", lwd = .7) +
+  tm_legend(legend.title.size = .7,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.7, "top"),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+    title.position = c("left", .15),
+    title.fontfamily = "mono") +
+  tm_scale_bar(position = c("left", "bottom")) 
+
+
+tmap_save(m, "img_output/nacional_municipio_diabetes.png", width=1920, height=1080, asp=0)
+```
+
+
+## OAXACA
+
+```{r}
+oaxaca <- municipios_pais %>% 
+  filter(ENTIDAD == "20")
+```
+### OBESIDAD
+
+```{r}
+
+variable <- "Porcentaje de población de 20 años y más con obesidad."
+titulo <- "OBESIDAD DE OAXACA POR MUNICIPIO "
+
+m <- tm_shape(oaxaca, projection = 4326) +
+  tm_polygons(variable,
+              #breaks = c(25,30, 35,40,45,50),
+              palette = "BuPu",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 20),
+              textNA = "ND",
+              border.col = "black",
+              lwd = .5
+    ) +
+  tm_legend(legend.title.size = .8,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.75, .6),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+            title.size = .9,
+    title.position = c("left", "top"),
+    title.fontfamily = "mono",
+    inner.margins = c(0,0,.1,0)) +
+  tm_scale_bar() 
+
+
+tmap_save(m, "img_output/oaxaca_municipio_obesidad.png", width=1920, height=1080, asp=0)
+
+```
+
+### HIPERTENSIÓN
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de hipertensión."
+titulo <- "HIPERTENSIÓN DE OAXACA POR MUNICIPIO"
+
+m <- tm_shape(oaxaca, projection = 4326) +
+  tm_polygons(variable,
+              #breaks = c(25,30, 35,40,45,50),
+              palette = "BrBG",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 20),
+              textNA = "ND",
+              border.col = "black",
+              lwd = .5
+    ) +
+  tm_legend(legend.title.size = .8,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.75, .6),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+            title.size = .9,
+    title.position = c("left", "top"),
+    title.fontfamily = "mono",
+    inner.margins = c(0,0,.1,0)) +
+  tm_scale_bar() 
+
+
+tmap_save(m, "img_output/oaxaca_municipio_hipertension.png", width=1920, height=1080, asp=0)
+```
+
+### DIABETES
+
+```{r}
+variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de diabetes."
+titulo <- "DIABETES DE OAXACA POR MUNICIPIO"
+
+m <- tm_shape(oaxaca, projection = 4326) +
+  tm_polygons(variable,
+              #breaks = c(5,9, 13,17,21,25,29),
+              palette = "PuOr",
+              lwd	= 0.1,
+              legend.format = list(text.separator = "a", suffix = "%"),
+              title = str_wrap(variable, 20),
+              textNA = "ND",
+              border.col = "black",
+              lwd = .5
+    ) +
+  tm_legend(legend.title.size = .8,
+            legend.title.fontfamily = "mono",
+            legend.position = c(.75, .6),
+            legend.text.size = .5
+            ) +
+  tm_layout(title = titulo,
+            title.size = .9,
+    title.position = c("left", "top"),
+    title.fontfamily = "mono",
+    inner.margins = c(0,0,.1,0)) +
+  tm_scale_bar() 
+
+
+tmap_save(m, "img_output/oaxaca_municipio_diabetes.png", width=1920, height=1080, asp=0)
+```
+
+
+# TODO 
+# nombre municipios
