@@ -169,7 +169,6 @@ titulo <- "OBESIDAD POR MUNICIPIO"
 
 m <- tm_shape(municipios_pais, projection = 4326) +
   tm_polygons(variable,
-              #breaks = c(25,30, 35,40,45,50),
               palette = "BuPu",
               lwd	= 0.1,
               legend.format = list(text.separator = "a", suffix = "%"),
@@ -201,7 +200,6 @@ titulo <- "HIPERTENSIÓN POR MUNICIPIO"
 
 m <- tm_shape(municipios_pais, projection = 4326) +
   tm_polygons(variable,
-              #breaks = c(25,30, 35,40,45,50),
               palette = "BrBG",
               lwd	= 0.1,
               legend.format = list(text.separator = "a", suffix = "%"),
@@ -267,11 +265,10 @@ oaxaca <- municipios_pais %>%
 ```{r}
 
 variable <- "Porcentaje de población de 20 años y más con obesidad."
-titulo <- "OBESIDAD DE OAXACA POR MUNICIPIO "
+titulo <- "OBESIDAD EN OAXACA POR MUNICIPIO "
 
 m <- tm_shape(oaxaca, projection = 4326) +
   tm_polygons(variable,
-              #breaks = c(25,30, 35,40,45,50),
               palette = "BuPu",
               lwd	= 0.1,
               legend.format = list(text.separator = "a", suffix = "%"),
@@ -301,11 +298,10 @@ tmap_save(m, "img_output/oaxaca_municipio_obesidad.png", width=1920, height=1080
 
 ```{r}
 variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de hipertensión."
-titulo <- "HIPERTENSIÓN DE OAXACA POR MUNICIPIO"
+titulo <- "HIPERTENSIÓN EN OAXACA POR MUNICIPIO"
 
 m <- tm_shape(oaxaca, projection = 4326) +
   tm_polygons(variable,
-              #breaks = c(25,30, 35,40,45,50),
               palette = "BrBG",
               lwd	= 0.1,
               legend.format = list(text.separator = "a", suffix = "%"),
@@ -334,11 +330,10 @@ tmap_save(m, "img_output/oaxaca_municipio_hipertension.png", width=1920, height=
 
 ```{r}
 variable <- "Porcentaje de población de 20 años y más con diagnóstico previo de diabetes."
-titulo <- "DIABETES DE OAXACA POR MUNICIPIO"
+titulo <- "DIABETES EN OAXACA POR MUNICIPIO"
 
 m <- tm_shape(oaxaca, projection = 4326) +
   tm_polygons(variable,
-              #breaks = c(5,9, 13,17,21,25,29),
               palette = "PuOr",
               lwd	= 0.1,
               legend.format = list(text.separator = "a", suffix = "%"),
