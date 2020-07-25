@@ -364,5 +364,4 @@ tmap_save(m, "img_output/oaxaca_municipio_diabetes.png", width=1920, height=1080
 ```
 
 
-# TODO 
-# nombre municipios
+
